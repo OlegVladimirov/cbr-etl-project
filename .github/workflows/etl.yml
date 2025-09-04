@@ -1,0 +1,54 @@
+name: Ежедневный ETL с ЦБ РФ
+
+on:
+  schedule:
+    - cron: '0 2 * * *' # 02:00 UTC ~ 05:00 МСК
+  workflow_dispatch:
+
+jobs:
+  run-etl:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Скачать код
+      - name: Checkout код
+        uses: actions/checkout@v4
+
+      # 2. Установить Python
+      - name: Установить Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      # 3. Установить зависимости
+      - name: Установить зависимости
+        run: |
+          pip install --upgrade pip
+          pip install -r etl/requirements.txt
+
+      # 4.
+      - name: 🌐 Показать IP-адрес runner'а
+        run: |
+          echo "Public IP: $(curl -s ifconfig.me)"
+          echo "GitHub Actions runner IP shown."
+
+      # 5.
+      - name: 🚧 Проверить доступность render.com (принудительно через IPv4)
+        run: |
+          echo "Проверяем подключение к render.com через IPv4..."
+          # Получаем IPv4-адрес хоста
+          IP=$(dig +short dpg-d2tj3ser433s73dfifr0-a.oregon-postgres.render.com A | head -n1)
+          echo "IPv4-адрес: $IP"
+          if [ -n "$IP" ]; then
+            timeout 10s telnet "$IP" 5432 || echo "❌ Подключение к $IP:5432 не удалось"
+          else
+            echo "❌ Не удалось разрешить IPv4-адрес"
+          fi
+
+      # 6. Запустить ETL-скрипт
+      - name: Запустить ETL
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          INIT_LOAD: ${{ secrets.INIT_LOAD }}  # опционально
+        run: |
+          python etl/etl_cbr_exchange_rates.py
