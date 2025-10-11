@@ -105,7 +105,7 @@ def fetch_currency_reference():
         return pd.DataFrame()
 
 # --- Функция: сохранение в БД ---
-def save_to_db(df, table_name, schema='public', if_exists='append'):
+def save_to_db(df, table_name, schema=None, if_exists='append'):
     """
     Сохраняет DataFrame в PostgreSQL
     """
@@ -138,7 +138,7 @@ def main():
 
     # Сохраняем курсы
     if not df_rates.empty:
-        save_to_db(df_rates, 'exchange_rates', schema='public', if_exists='replace')  # if_exists='append' - для добавления
+        save_to_db(df_rates, 'exchange_rates', schema=None, if_exists='replace')  # if_exists='append' - для добавления
     else:
         print("Нет данных для сохранения курсов.")
 
@@ -149,7 +149,7 @@ def main():
         print("Загружаем справочник валют (по расписанию или инициализация).")
         df_ref = fetch_currency_reference()
         if not df_ref.empty:
-            save_to_db(df_ref, 'currency_reference', schema='public', if_exists='replace')
+            save_to_db(df_ref, 'currency_reference', schema=None, if_exists='replace')
         else:
             print("Не удалось загрузить справочник валют.")
     else:
