@@ -107,20 +107,27 @@ def fetch_currency_reference():
 # --- Функция: сохранение в БД ---
 def save_to_db(df, table_name, schema=None, if_exists='append'):
     """
-    Сохраняет DataFrame в PostgreSQL
+    Сохраняет DataFrame в БД. Если if_exists='replace', удаляет старые данные перед вставкой.
     """
+    full_table_name = f"{schema}.{table_name}" if schema else table_name
+
     try:
-        df.to_sql(
-            table_name,
-            engine,
-            schema=schema,
-            if_exists=if_exists,
-            index=False,
-            method='multi'
-        )
-        print(f"Данные сохранены в таблицу {schema}.{table_name}: {len(df)} строк")
+        with engine.begin() as conn:  # Одна транзакция на всё
+            if if_exists == 'replace':
+                conn.execute(text(f"DELETE FROM {full_table_name}"))
+            
+            # Используем то же соединение для вставки
+            df.to_sql(
+                table_name,
+                con=conn,          # удаление и вставка в одной транзакции
+                schema=schema,
+                if_exists='append',
+                index=False,
+                method='multi'
+            )
+        print(f"Данные сохранены в таблицу {full_table_name}: {len(df)} строк")
     except Exception as e:
-        print(f"Ошибка при сохранении в БД ({schema}.{table_name}): {e}")
+        print(f"Ошибка при сохранении в БД ({full_table_name}): {e}")
 
 # --- Основная логика ---
 def main():
@@ -138,7 +145,7 @@ def main():
 
     # Сохраняем курсы
     if not df_rates.empty:
-        save_to_db(df_rates, 'exchange_rates', schema=None, if_exists='replace')  # if_exists='append' - для добавления
+        save_to_db(df_rates, 'exchange_rates', schema=None, if_exists='replace')
     else:
         print("Нет данных для сохранения курсов.")
 
