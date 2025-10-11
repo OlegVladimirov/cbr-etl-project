@@ -2,7 +2,7 @@ import pandas as pd
 import requests
 from datetime import datetime, timedelta
 import xml.etree.ElementTree as ET
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 import os
 from dateutil.relativedelta import relativedelta
 
