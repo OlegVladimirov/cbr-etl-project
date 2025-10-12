@@ -39,3 +39,14 @@ jobs:
           INIT_LOAD: ${{ secrets.INIT_LOAD }}  # опционально
         run: |
           python etl/etl_cbr_exchange_rates.py
+
+      # 6. Продлить срок жизни БД
+      - name: 🔁 Продлить срок жизни БД на freesqldatabase.com
+        run: |
+          echo "Выполняем продление аккаунта..."
+          curl -fsS --max-time 30 "https://www.freesqldatabase.com/extension/?acc=O2PJNu1dZzXVMO3I6gtaqw%3D%3D"
+          if [ $? -eq 0 ]; then
+            echo "✅ Успешно продлено"
+          else
+            echo "❌ Ошибка при продлении"
+          fi
