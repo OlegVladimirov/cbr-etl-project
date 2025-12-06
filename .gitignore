@@ -1,0 +1,3 @@
+# Prevent accidental commit of secrets
+creds.txt
+.secrets/creds.txt

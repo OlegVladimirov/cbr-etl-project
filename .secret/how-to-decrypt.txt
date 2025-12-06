@@ -1,0 +1,11 @@
+# Decrypt creds.txt.gpg
+# Hint: lowercase, ICAO Doc 9303 transliteration, dash-separated:
+# (1) street of your elementary school (the building, not your home);
+# (2) nearest public transport stop to your dacha, same year.
+# Template: ulica-ostanovka
+read -rsp 'pass:' pass; echo; gpg --decrypt --batch --yes --passphrase "$pass" creds.txt.gpg > creds.txt; unset pass
+
+# Encrypt
+read -rsp 'pass:' pass; echo; gpg --symmetric --batch --yes --passphrase "$pass" creds.txt; unset pass
+
+# 🔒 Safety: plaintext creds.txt is blocked by .gitignore — never committed.
